@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "51141258798",
+    "firebase_url": "https://memmori-view.firebaseio.com",
+    "project_id": "memmori-view",
+    "storage_bucket": "memmori-view.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:51141258798:android:10603125edc28f4e",
+        "android_client_info": {
+          "package_name": "com.memmori.memmoriview"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "51141258798-6mtgk11ia9gaaa7olc5d1o5bocuc7ean.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8tAuzayz2zdaHm2jUHLI5V2ZREyGJdSA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "51141258798-6mtgk11ia9gaaa7olc5d1o5bocuc7ean.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
