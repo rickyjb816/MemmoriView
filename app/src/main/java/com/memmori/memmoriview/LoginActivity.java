@@ -2,8 +2,12 @@ package com.memmori.memmoriview;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +28,7 @@ import static android.text.TextUtils.isEmpty;
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "LoginActivity";
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 9001;
 
     //Firebase
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -36,13 +41,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        checkPermissions();
         txtEmail = findViewById(R.id.txtEmail);
         txtPassword = findViewById(R.id.txtPassword);
 
         setupFirebaseAuth();
         findViewById(R.id.btnLogin).setOnClickListener(this);
         findViewById(R.id.btnRegister).setOnClickListener(this);
+        findViewById(R.id.btnGuestLogin).setOnClickListener(this);
+
+        //int image = R.drawable.hopest;
+        //Toast.makeText(this, Integer.toString(image), Toast.LENGTH_LONG).show();
 
         hideSoftKeyboard();
     }
@@ -163,12 +172,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.btnRegister:{
-                guestSignIn();
+                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                startActivity(intent);
                 break;
             }
 
             case R.id.btnLogin:{
                 signIn();
+                break;
+            }
+
+            case R.id.btnGuestLogin:{
+                guestSignIn();
                 break;
             }
         }
@@ -185,6 +200,26 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onStop();
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
+        }
+    }
+
+    private void checkPermissions()
+    {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+                // No explanation needed; request the permission
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+
+        } else {
+            // Permission has already been granted
         }
     }
 }
