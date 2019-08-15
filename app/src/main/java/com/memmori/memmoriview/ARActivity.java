@@ -396,13 +396,6 @@ public class ARActivity extends AppCompatActivity implements
             case R.id.jsMovement:
             {
                 if(locationScene.mLocationMarkers.get(0).anchorNode != null) {
-                    //locationScene.mLocationMarkers.get(0).anchorNode.setEnabled(true);
-                    //locationScene.mLocationMarkers.get(0).anchorNode.setWorldPosition(new Vector3(100,100,100));
-                    //locationScene.mLocationMarkers.get(0).anchorNode
-                    Toast.makeText(this, String.valueOf(locationScene.mLocationMarkers.get(0).anchorNode.getWorldPosition()), Toast.LENGTH_SHORT).show();
-                    //Log.d("ARActivity", "onJoystickMoved: " + locationScene.mLocationMarkers.get(0).anchorNode.getWorldPosition());
-                    //locationScene.mLocationMarkers.get(0).anchorNode.setEnabled(false);
-
                     float[] position = { 0, 0, -0.75f };       // 75 cm away from camera
                     float[] rotation = { 0, 0, 0, 1 };
 
@@ -411,10 +404,8 @@ public class ARActivity extends AppCompatActivity implements
                     AnchorNode anchorNode = new AnchorNode(anchor);
                     anchorNode.setRenderable(modelRenderable);
                     anchorNode.setParent(arSceneView.getScene());
-                    anchor.detach();
-                    anchorNode.setLocalPosition(new Vector3(0f,0.85f,0f));
-                    anchorNode.setAnchor(anchor);
-                    Toast.makeText(this, String.valueOf(anchorNode.getLocalPosition()), Toast.LENGTH_SHORT).show();
+                    //anchorNode.setWorldRotation(new Quaternion(new Vector3(0f, 50f, 0f)));
+                    Toast.makeText(this, String.valueOf(anchorNode.getWorldRotation()), Toast.LENGTH_SHORT).show();
                     Log.d("ARActivity", "onJoystickMoved: " + anchorNode.getLocalPosition());
                 }
                 break;
