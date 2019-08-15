@@ -2,4 +2,5 @@
 <resources>
     <dimen name="custom_marker_image">50dp</dimen>
     <dimen name="custom_marker_padding">2dp</dimen>
+    <dimen name="user_location_button_size">100dp</dimen>
 </resources>

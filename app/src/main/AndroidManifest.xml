@@ -8,8 +8,8 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- Indicates that app requires ARCore ("AR Required"). Ensures app is only
+    <!--
+ Indicates that app requires ARCore ("AR Required"). Ensures app is only
          visible in the Google Play Store on devices that support ARCore.
     -->
     <uses-feature android:name="android.hardware.camera.ar" />
@@ -21,7 +21,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ARActivity"></activity>
+        <activity android:name=".User.UserAccountActivity"></activity>
+        <activity android:name=".Location.LocationInfoActivity" />
+        <activity android:name=".ARActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -38,10 +40,10 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".Map.MapsActivity"
             android:label="@string/title_activity_maps" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".LoginActivity" />
+        <activity android:name=".User.RegisterActivity" />
+        <activity android:name=".User.LoginActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -49,11 +51,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Indicates that app requires ARCore ("AR Required"). Causes Google
+        <!--
+ Indicates that app requires ARCore ("AR Required"). Causes Google
          Play Store to download and install ARCore when the app is installed.
-    -->
-        <meta-data android:name="com.google.ar.core" android:value="required" />
+        -->
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
     </application>
 
 </manifest>

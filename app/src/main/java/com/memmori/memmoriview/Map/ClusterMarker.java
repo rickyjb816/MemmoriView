@@ -1,17 +1,20 @@
-package com.memmori.memmoriview;
+package com.memmori.memmoriview.Map;
+
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.clustering.ClusterItem;
+import com.memmori.memmoriview.Location.Location;
 
 public class ClusterMarker implements ClusterItem {
     private LatLng position;
     private String title;
     private String snippet;
-    private int iconPicture;
+    private String iconPicture;
     private Location location;
 
 
-    public ClusterMarker(LatLng position, String title, String snippet, int iconPicture, Location location) {
+
+    public ClusterMarker(LatLng position, String title, String snippet, String iconPicture, Location location) {
         this.position = position;
         this.title = title;
         this.snippet = snippet;
@@ -49,11 +52,11 @@ public class ClusterMarker implements ClusterItem {
         this.snippet = snippet;
     }
 
-    public int getIconPicture() {
+    public String getIconPicture() {
         return iconPicture;
     }
 
-    public void setIconPicture(int iconPicture) {
+    public void setIconPicture(String iconPicture) {
         this.iconPicture = iconPicture;
     }
 

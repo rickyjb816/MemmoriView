@@ -1,4 +1,4 @@
-package com.memmori.memmoriview;
+package com.memmori.memmoriview.Location;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import java.text.SimpleDateFormat;
 
 public class Location implements Parcelable {
 
@@ -15,12 +16,13 @@ public class Location implements Parcelable {
     private String photographer;
     private Timestamp dateTaken;
     private Timestamp dateAdded;
-    private int picture;
+    private String picture;
     private String streetName;
     private String buildingName;
     private String description;
+    private String Test;
 
-    public Location(String name, GeoPoint location, String owner, String photographer, Timestamp dateTaken, Timestamp dateAdded, int picture, String streetName, String buildingName, String description) {
+    public Location(String name, GeoPoint location, String owner, String photographer, Timestamp dateTaken, Timestamp dateAdded, String picture, String streetName, String buildingName, String description, String Test) {
         this.name = name;
         this.location = location;
         this.owner = owner;
@@ -31,6 +33,7 @@ public class Location implements Parcelable {
         this.streetName = streetName;
         this.buildingName = buildingName;
         this.description = description;
+        this.Test = Test;
     }
 
     public Location(QueryDocumentSnapshot location) {
@@ -38,15 +41,27 @@ public class Location implements Parcelable {
         this.location = (GeoPoint) location.get("location");
         this.owner = location.get("owner").toString();
         this.photographer = location.get("photographer").toString();
-        this.dateTaken = (Timestamp) location.get("date_Taken");
-        this.dateAdded = (Timestamp) location.get("date_Added");
-        this.picture = Integer.valueOf((String) location.get("picture"));
+        this.dateTaken = (Timestamp) location.get("date_taken");
+        this.dateAdded = (Timestamp) location.get("date_added");
+        this.picture = location.get("picture").toString();
         this.streetName = location.get("street_name").toString();
         this.buildingName = location.get("building_name").toString();
-        this.description = location.get("description").toString();
+        //this.description = location.get("description").toString();
+        this.Test = location.get("Test").toString();
+        //Toast.makeText(getApplicationCon, Toast.LENGTH_SHORT).show();
     }
 
     protected Location(Parcel in) {
+        name = in.readString();
+        location = new GeoPoint(in.readDouble(), in.readDouble());
+        owner = in.readString();
+        photographer = in.readString();
+        dateTaken = in.readParcelable(Timestamp.class.getClassLoader());
+        dateAdded = in.readParcelable(Timestamp.class.getClassLoader());
+        picture = in.readString();
+        streetName = in.readString();
+        buildingName = in.readString();
+        description = in.readString();
     }
 
     public static final Creator<Location> CREATOR = new Creator<Location>() {
@@ -61,6 +76,10 @@ public class Location implements Parcelable {
         }
     };
 
+    public Location() {
+
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -68,6 +87,17 @@ public class Location implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(name);
+        parcel.writeDouble(location.getLatitude());
+        parcel.writeDouble(location.getLongitude());
+        parcel.writeString(owner);
+        parcel.writeString(photographer);
+        parcel.writeParcelable(dateTaken, 1);
+        parcel.writeParcelable(dateAdded, 1);
+        parcel.writeString(picture);
+        parcel.writeString(streetName);
+        parcel.writeString(buildingName);
+        parcel.writeString(description);
     }
 
     public String getName() {
@@ -103,7 +133,15 @@ public class Location implements Parcelable {
     }
 
     public Timestamp getDateTaken() {
+
         return dateTaken;
+    }
+
+    public String getDateTakenString()
+    {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy");
+        String dateStr = simpleDateFormat.format(dateTaken.toDate());
+        return dateStr;
     }
 
     public void setDateTaken(Timestamp dateTaken) {
@@ -114,15 +152,22 @@ public class Location implements Parcelable {
         return dateAdded;
     }
 
+    public String getDateAddedString()
+    {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy");
+        String dateStr = simpleDateFormat.format(dateAdded.toDate());
+        return dateStr;
+    }
+
     public void setDateAdded(Timestamp dateAdded) {
         this.dateAdded = dateAdded;
     }
 
-    public int getPicture() {
+    public String getPicture() {
         return picture;
     }
 
-    public void setPicture(int picture) {
+    public void setPicture(String picture) {
         this.picture = picture;
     }
 
