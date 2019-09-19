@@ -7,7 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Parcelable;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -20,25 +20,28 @@ import com.google.ar.core.Frame;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
+import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
+import com.google.ar.core.exceptions.NotTrackingException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.ArSceneView;
+import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
 import com.google.ar.sceneform.rendering.Texture;
 import com.google.ar.sceneform.rendering.ViewRenderable;
+import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.memmori.memmoriview.Controls.JoyStick;
 import com.memmori.memmoriview.Location.DemoUtils;
 import com.memmori.memmoriview.Location.Location;
 import com.memmori.memmoriview.Map.MapsActivity;
 
-import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -51,8 +54,11 @@ public class ARActivity extends AppCompatActivity implements
         View.OnClickListener,
         JoyStick.JoystickListener{
 
-    private ArSceneView arSceneView;
+    private ArFragment arFragment;
     private LocationScene locationScene;
+
+    AnchorNode anchorNode;
+    TransformableNode transformableNode;
 
     private ModelRenderable modelRenderable;
     private ViewRenderable LayoutRenderable;
@@ -71,10 +77,6 @@ public class ARActivity extends AppCompatActivity implements
     private JoyStick jsMovement;
     private JoyStick jsRotation;
 
-    float X;
-
-    float rot = 1;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,8 +89,9 @@ public class ARActivity extends AppCompatActivity implements
 
         btnBack.setOnClickListener(this);
         ibtnImageLock.setOnClickListener(this);
+        arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.arfragment);
 
-        arSceneView = findViewById(R.id.ar_scene_view);
+        arFragment.getArSceneView().getPlaneRenderer().setShadowReceiver(false);
 
         location = getIntent().getParcelableExtra("LocationInfo");
         Uri link = getIntent().getParcelableExtra("uri");
@@ -142,7 +145,19 @@ public class ARActivity extends AppCompatActivity implements
 
         // Set an update listener on the Scene that will hide the loading message once a Plane is
         // detected.
-        arSceneView
+
+        arFragment.getArSceneView().getScene().addOnUpdateListener(new Scene.OnUpdateListener() {
+            @Override
+            public void onUpdate(FrameTime frameTime) {
+                if(anchorNode == null && arFragment.getArSceneView().getSession() != null)
+                {
+                    //Toast.makeText(ARActivity.this, "Should Add Model", Toast.LENGTH_SHORT).show();
+                    addModelToScene(modelRenderable);
+                }
+            }
+        });
+
+        arFragment.getArSceneView()
                 .getScene()
                 .addOnUpdateListener(
                         frameTime -> {
@@ -153,15 +168,15 @@ public class ARActivity extends AppCompatActivity implements
                             if (locationScene == null) {
                                 // If our locationScene object hasn't been setup yet, this is a good time to do it
                                 // We know that here, the AR components have been initiated.
-                                locationScene = new LocationScene(this, arSceneView);
+                                locationScene = new LocationScene(this, arFragment.getArSceneView());
 
                                 // Now lets create our location markers.
                                 //Needs to be removed before proper release
-                                LocationMarker layoutLocationMarker = new LocationMarker(
+                                /*LocationMarker layoutLocationMarker = new LocationMarker(
                                         location.getLocation().getLongitude(),
                                         location.getLocation().getLatitude(),
                                         getExampleView()
-                                );
+                                );*/
 
                                 // An example "onRender" event, called every frame
                                 // Updates the layout with the markers distance
@@ -177,23 +192,22 @@ public class ARActivity extends AppCompatActivity implements
 
                                         Log.d("ARActivity", "render: Frame");
                                     }
-                                });*///
+                                });//*/
                                 // Adding the marker
                                 //locationScene.mLocationMarkers.add(layoutLocationMarker);
 
 
                                 // Adding a simple location marker of a 3D model
-                                locationScene.mLocationMarkers.add(
+                                /*locationScene.mLocationMarkers.add(
                                         new LocationMarker(
                                                 location.getLocation().getLongitude(),
                                                 location.getLocation().getLatitude(),
                                                 getModel()));
                                 locationScene.mLocationMarkers.get(0).setScalingMode(LocationMarker.ScalingMode.FIXED_SIZE_ON_SCREEN);
-                                //locationScene.mLocationMarkers.get(1).setScalingMode(LocationMarker.ScalingMode.GRADUAL_FIXED_SIZE);
-                                locationScene.setAnchorRefreshInterval(100000);
+                                locationScene.setAnchorRefreshInterval(100000);*/
                             }
 
-                            Frame frame = arSceneView.getArFrame();
+                            Frame frame = arFragment.getArSceneView().getArFrame();
                             if (frame == null) {
                                 return;
                             }
@@ -205,7 +219,7 @@ public class ARActivity extends AppCompatActivity implements
                             if (locationScene != null) {
                                 if(!isImageLocked) {
                                     locationScene.processFrame(frame);
-                                    showTransformNode();
+                                    //addModelToScene(modelRenderable);
                                 }
                             }
 
@@ -217,6 +231,8 @@ public class ARActivity extends AppCompatActivity implements
                                 }
                             }
                         });
+
+        //addModelToScene(modelRenderable);
         // Lastly request CAMERA & fine location permission which is required by ARCore-Location.
         ARLocationPermissionHelper.requestPermission(this);
     }
@@ -261,20 +277,19 @@ public class ARActivity extends AppCompatActivity implements
     @Override
     protected void onStart() {
         super.onStart();
-        if (locationScene != null) {
-            locationScene.resume();
-        }
 
-        if (arSceneView.getSession() == null) {
+        if (arFragment.getArSceneView().getSession() == null) {
             // If the session wasn't created yet, don't resume rendering.
             // This can happen if ARCore needs to be updated or permissions are not granted yet.
             try {
                 Session session = DemoUtils.createArSession(this, installRequested);
                 if (session == null) {
                     installRequested = ARLocationPermissionHelper.hasPermission(this);
+
                     return;
                 } else {
-                    arSceneView.setupSession(session);
+                    //arSceneView.setupSession(session);
+                    //addModelToScene(modelRenderable);
                 }
             } catch (UnavailableException e) {
                 DemoUtils.handleSessionException(this, e);
@@ -282,16 +297,16 @@ public class ARActivity extends AppCompatActivity implements
         }
 
         try {
-            arSceneView.resume();
+            arFragment.getArSceneView().resume();
         } catch (CameraNotAvailableException ex) {
             DemoUtils.displayError(this, "Unable to get camera", ex);
             finish();
             return;
         }
 
-        if(arSceneView.getSession() != null) {
+        /*if(arSceneView.getSession() != null) {
             //showLoadingMessage();
-        }
+        }*/
     }
 
     /**
@@ -312,7 +327,7 @@ public class ARActivity extends AppCompatActivity implements
     @Override
     public void onDestroy() {
         super.onDestroy();
-        arSceneView.destroy();
+        //arSceneView.destroy();
     }
 
     private void showLoadingMessage() {
@@ -395,25 +410,32 @@ public class ARActivity extends AppCompatActivity implements
         {
             case R.id.jsMovement:
             {
-                if(locationScene.mLocationMarkers.get(0).anchorNode != null) {
-                    float[] position = { 0, 0, -0.75f };       // 75 cm away from camera
-                    float[] rotation = { 0, 0, 0, 1 };
-
-                    Anchor anchor = arSceneView.getSession().createAnchor(new Pose(position, rotation));
-
-                    AnchorNode anchorNode = new AnchorNode(anchor);
-                    anchorNode.setRenderable(modelRenderable);
-                    anchorNode.setParent(arSceneView.getScene());
-                    //anchorNode.setWorldRotation(new Quaternion(new Vector3(0f, 50f, 0f)));
-                    Toast.makeText(this, String.valueOf(anchorNode.getWorldRotation()), Toast.LENGTH_SHORT).show();
-                    Log.d("ARActivity", "onJoystickMoved: " + anchorNode.getLocalPosition());
+                if(anchorNode == null)
+                {
+                    addModelToScene(modelRenderable);
+                }
+                else
+                {
+                    if(!isImageLocked)
+                    {
+                        transformableNode.setWorldPosition(new Vector3(transformableNode.getWorldPosition().x + xPercent / 50, 0, transformableNode.getWorldPosition().z + yPercent / 50));
+                    }
                 }
                 break;
             }
             case R.id.jsRotation:
             {
-                if(locationScene.mLocationMarkers.get(0).anchorNode != null) {
-                    setModelOpacity(yPercent);
+                if(anchorNode == null)
+                {
+                    addModelToScene(modelRenderable);
+                }
+                else
+                {
+                    if(!isImageLocked)
+                    {
+                        transformableNode.setWorldRotation(new Quaternion(new Vector3(0, transformableNode.getWorldRotation().y + xPercent / 10, 0), 90f));
+                    }
+                    setModelOpacity(yPercent*-1);
                 }
                 break;
             }
@@ -426,11 +448,30 @@ public class ARActivity extends AppCompatActivity implements
         this.opacity = this.opacity < 0 ? 0 : this.opacity;
         this.opacity = this.opacity > 1 ? 1 : this.opacity;
         modelRenderable.getMaterial().setFloat("opacity", this.opacity);
-        Toast.makeText(this, String.valueOf(this.opacity), Toast.LENGTH_SHORT).show();
-        Log.d("ARActivity", "setModelOpacity: " + opacity);
     }
 
-    private void showTransformNode() {
-        //TransformableNode node = new TransformableNode(arSceneView.transf)
+    private void addModelToScene(ModelRenderable modelRenderable) {
+        float[] position = {0f, 0f, -0.75f};
+        float[] rotation = {0f, 0f, 0f, 0f};
+        Pose pose = new Pose(position, rotation);
+
+        if(arFragment.getArSceneView().getSession() != null && anchorNode == null) {
+            //Add Try Catch
+            try
+            {
+                Anchor anchor = arFragment.getArSceneView().getSession().createAnchor(pose);
+                anchorNode = new AnchorNode(anchor);
+                transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+                transformableNode.setParent(anchorNode);
+                transformableNode.setRenderable(modelRenderable);
+                arFragment.getArSceneView().getScene().addChild(anchorNode);
+                transformableNode.select();
+            }
+            catch(NotTrackingException e)
+            {
+                //Toast.makeText(this, "No Trackable Surface. Please Scan Environment", Toast.LENGTH_SHORT).show();
+            }
+
+        }
     }
 }

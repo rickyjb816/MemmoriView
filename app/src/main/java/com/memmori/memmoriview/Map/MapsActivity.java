@@ -39,6 +39,7 @@ import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.clustering.ClusterManager;
 import com.memmori.memmoriview.Location.LocationDialog;
 import com.memmori.memmoriview.R;
+import com.memmori.memmoriview.User.LoginActivity;
 import com.memmori.memmoriview.User.User;
 import com.memmori.memmoriview.User.UserAccountActivity;
 
@@ -66,6 +67,13 @@ public class MapsActivity extends FragmentActivity implements
     private User mUser;
 
     private Button btnUser;
+    private Button btnLogout;
+    private Button btnRefresh;
+    private Button btnFilterAll;
+    private Button btnFilterApproved;
+    private Button btnFilterUser;
+
+    private String Filter = "All";
 
     public static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 9003;
 
@@ -81,13 +89,26 @@ public class MapsActivity extends FragmentActivity implements
         mdatabase = FirebaseFirestore.getInstance();
         mClusterMarkers = new ArrayList<>();
 
-        btnUser = findViewById(R.id.btnUser);
+        btnUser = findViewById(R.id.btnAdd);
         btnUser.setOnClickListener(this);
+
+        btnLogout = findViewById(R.id.btnLogout);
+        btnLogout.setOnClickListener(this);
+
+        btnRefresh = findViewById(R.id.btnRefresh);
+        btnRefresh.setOnClickListener(this);
+
+        btnFilterAll = findViewById(R.id.btnFilterAll);
+        btnFilterAll.setOnClickListener(this);
+
+        btnFilterApproved = findViewById(R.id.btnFilterApproved);
+        btnFilterApproved.setOnClickListener(this);
+
+        btnFilterUser = findViewById(R.id.btnFilterUser);
+        btnFilterUser.setOnClickListener(this);
 
         initialUser();
     }
-
-
 
     /**
      * Manipulates the map once available.
@@ -187,7 +208,7 @@ public class MapsActivity extends FragmentActivity implements
                                         com.memmori.memmoriview.Location.Location location = new com.memmori.memmoriview.Location.Location(document);
                                         ClusterMarker newClusterMarker = new ClusterMarker(
                                                 new LatLng(latLng.getLatitude(), latLng.getLongitude()),
-                                                document.get("name").toString(),
+                                                document.get("building_name").toString(),
                                                 "",
                                                 document.get("picture").toString(),
                                                 location
@@ -212,7 +233,6 @@ public class MapsActivity extends FragmentActivity implements
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        //final double distance;
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -229,12 +249,45 @@ public class MapsActivity extends FragmentActivity implements
 
     @Override
     public void onClick(View view) {
-        Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
         switch (view.getId()){
-            case R.id.btnUser:{
-                Intent intent = new Intent(this, UserAccountActivity.class);
-                intent.putExtra("UserInfo", mUser);
+            case R.id.btnAdd:{
+                Intent intent = new Intent(this, LocationPlacementActivity.class);
+                //intent.putExtra("UserInfo", mUser);
                 startActivity(intent);
+                break;
+            }
+            case R.id.btnLogout:
+            {
+                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                break;
+            }
+            case R.id.btnRefresh:
+            {
+                mClusterManager.clearItems();
+                mClusterManager.cluster();
+                FilterLocations(Filter);
+                mClusterManager.cluster();
+                Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
+                break;
+            }
+            case R.id.btnFilterAll:
+            {
+                ClearMap();
+                FilterLocations("All");
+                break;
+            }
+            case R.id.btnFilterApproved:
+            {
+                ClearMap();
+                FilterLocations("Approved");
+                break;
+            }
+            case R.id.btnFilterUser:
+            {
+                ClearMap();
+                FilterLocations("User");
                 break;
             }
         }
@@ -242,7 +295,6 @@ public class MapsActivity extends FragmentActivity implements
 
     public void openDialog(ClusterMarker marker, double distance)
     {
-        //Toast.makeText(this, marker.getTitle(), Toast.LENGTH_SHORT).show();
         Bundle bundle = new Bundle();
         bundle.putParcelable("LocationInfo", marker.getLocation());
         bundle.putDouble("Distance", distance);
@@ -258,7 +310,6 @@ public class MapsActivity extends FragmentActivity implements
             mClusterManager.clearItems();
             mClusterManager.addItems(mClusterMarkers);
             mClusterManager.cluster();
-            //Toast.makeText(MapsActivity.this, "Re-Cluster", Toast.LENGTH_SHORT).show();
             handler.postDelayed(this, 10000);
         }
     };
@@ -285,5 +336,33 @@ public class MapsActivity extends FragmentActivity implements
                 }
             }
         });
+    }
+
+    private void ClearMap()
+    {
+        mClusterManager.clearItems();
+        mClusterManager.cluster();
+    }
+
+    private void FilterLocations(String Filter)
+    {
+        if(Filter.equals("All"))
+        {
+            mClusterManager.addItems(mClusterMarkers);
+            mClusterManager.cluster();
+
+        }
+        else
+        {
+            for(ClusterMarker marker : mClusterMarkers)
+            {
+                if(marker.getLocation().getFilter().equals(Filter))
+                {
+                    mClusterManager.addItem(marker);
+                }
+            }
+            mClusterManager.cluster();
+        }
+        this.Filter = Filter;
     }
 }

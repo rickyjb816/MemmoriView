@@ -2,13 +2,13 @@ package com.memmori.memmoriview.Location;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +29,9 @@ public class LocationDialog extends AppCompatDialogFragment implements View.OnCl
     private TextView txtPhotographer;
     private ImageView imgPicture;
     private Button btnMoreInfo;
+    private ImageButton btnARView;
+    private Button btnLocationDialogClose;
+    private TextView txtLocationDialogTitle;
 
     private Location location;
     private double distance = 0;
@@ -43,19 +46,13 @@ public class LocationDialog extends AppCompatDialogFragment implements View.OnCl
         location = bundle.getParcelable("LocationInfo");
         distance = bundle.getDouble("Distance");
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.DialogStyle);
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_location_info, null);
 
-        builder.setView(view)
-                .setTitle(location.getName())
-                .setNegativeButton("Close", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
+        builder.setView(view);
+                /*.setTitle(location.getBuildingName());
                 .setPositiveButton("View In AR", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -70,12 +67,18 @@ public class LocationDialog extends AppCompatDialogFragment implements View.OnCl
                             Toast.makeText(getContext(), "Not Within Required Distance, Get Closer", Toast.LENGTH_SHORT).show();
                         }
                     }
-                });
+                });*/
         txtDateTaken = view.findViewById(R.id.txtDescription);
         txtPhotographer = view.findViewById(R.id.txtPhotographer);
         imgPicture = view.findViewById(R.id.imgPicture);
         btnMoreInfo = view.findViewById(R.id.btnMoreInfo);
         btnMoreInfo.setOnClickListener(this);
+        txtLocationDialogTitle = view.findViewById(R.id.txtLocationTitle);
+        txtLocationDialogTitle.setText(location.getBuildingName());
+        btnARView = view.findViewById(R.id.btnViewAR);
+        btnARView.setOnClickListener(this);
+        btnLocationDialogClose = view.findViewById(R.id.btnLocationDialogClose);
+        btnLocationDialogClose.setOnClickListener(this);
 
         txtDateTaken.setText(location.getDateTakenString());
         txtPhotographer.setText(location.getPhotographer());
@@ -93,16 +96,44 @@ public class LocationDialog extends AppCompatDialogFragment implements View.OnCl
                 t = uri;
             }
         });
-        //final AlertDialog dialog = builder.create();
-        //((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+
+
+
         return builder.create();
     }
 
     @Override
     public void onClick(View view) {
-        Intent intent = new Intent(getActivity(), LocationInfoActivity.class);
+        switch(view.getId())
+        {
+            case R.id.btnMoreInfo:
+            {
+                Intent intent = new Intent(getActivity(), LocationInfoActivity.class);
+                intent.putExtra("LocationInfo", location);
+                startActivity(intent);
+                break;
+            }
+            case R.id.btnLocationDialogClose:
+            {
+                dismiss();
+                break;
+            }
+            case R.id.btnViewAR:
+            {
+                //Toast.makeText(getContext(), "Test", Toast.LENGTH_SHORT).show();
+                if(distance <= maxDistance) {
+                    Intent intent = new Intent(getActivity(), ARActivity.class);
+                    intent.putExtra("LocationInfo", location);
+                    intent.putExtra("uri", t);
+                    startActivity(intent);
+                }
+                else
+                {
+                    Toast.makeText(getContext(), "Not Within Required Distance, Get Closer", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+        }
 
-        intent.putExtra("LocationInfo", location);
-        startActivity(intent);
     }
 }

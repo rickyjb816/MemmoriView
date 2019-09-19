@@ -2,14 +2,11 @@ package com.memmori.memmoriview.User;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.memmori.memmoriview.Location.Location;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 public class User implements Parcelable {
 
@@ -17,15 +14,14 @@ public class User implements Parcelable {
     private String mEmail;
     private String mUserID;
     private String mUserType; //Need to change to enum or something later
-    private ArrayList<Location> mUserLocations;
+    private ArrayList<String> mUserLocations = new ArrayList<>();
 
     public User(QueryDocumentSnapshot document) {
         mUserName = String.valueOf(document.get("username"));
         mEmail = String.valueOf(document.get("email"));
         mUserID = String.valueOf(document.get("user_id"));
         mUserType = String.valueOf(document.get("user_type"));
-        //Map<String, Object> map = document.getData();
-
+        //createLocations(document);
     }
 
     protected User(Parcel in) {
@@ -33,7 +29,7 @@ public class User implements Parcelable {
         mEmail = in.readString();
         mUserID = in.readString();
         mUserType = in.readString();
-        mUserLocations = in.createTypedArrayList(Location.CREATOR);
+        in.readStringList(mUserLocations);
     }
 
     @Override
@@ -42,6 +38,7 @@ public class User implements Parcelable {
         parcel.writeString(mEmail);
         parcel.writeString(mUserID);
         parcel.writeString(mUserType);
+        parcel.writeStringList(mUserLocations);
     }
 
     public static final Creator<User> CREATOR = new Creator<User>() {
@@ -88,15 +85,15 @@ public class User implements Parcelable {
         this.mUserType = mUserType;
     }
 
-    public ArrayList<Location> getmUserLocations() {
+    public ArrayList<String> getmUserLocations() {
         return mUserLocations;
     }
 
-    public void setmUserLocations(ArrayList<Location> mUserLocations) {
+    public void setmUserLocations(ArrayList<String> mUserLocations) {
         this.mUserLocations = mUserLocations;
     }
 
-    public void addNewLocation(Location location)
+    public void addNewLocation(String location)
     {
         //Add to Database
         mUserLocations.add(location);
@@ -111,5 +108,22 @@ public class User implements Parcelable {
         return 0;
     }
 
+    private void createLocations(QueryDocumentSnapshot doc)
+    {
 
+        boolean check = true;
+        int i = 1;
+        while(check)
+        {
+            if(String.valueOf(doc.get("locations.location"+i)).isEmpty())
+            {
+                check =  false;
+            }
+            else
+            {
+                mUserLocations.add(String.valueOf(doc.get("locations.location"+i)));
+                i++;
+            }
+        }
+    }
 }

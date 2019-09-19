@@ -4,13 +4,13 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.DrawableRes;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
@@ -33,6 +33,7 @@ public class JoyStick extends SurfaceView implements
         super(context);
         getHolder().addCallback(this);
         setOnTouchListener(this);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
         VectorDrawable = R.drawable.ic_opacitytop;
         if(context instanceof JoystickListener) {
             joystickCallback = (JoystickListener) context;
@@ -43,6 +44,7 @@ public class JoyStick extends SurfaceView implements
         super(context, attrs);
         getHolder().addCallback(this);
         setOnTouchListener(this);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
         if(context instanceof JoystickListener) {
             joystickCallback = (JoystickListener) context;
         }
@@ -52,6 +54,7 @@ public class JoyStick extends SurfaceView implements
         super(context, attrs, defStyleAttr);
         getHolder().addCallback(this);
         setOnTouchListener(this);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
         if(context instanceof JoystickListener) {
             joystickCallback = (JoystickListener) context;
         }
@@ -65,6 +68,7 @@ public class JoyStick extends SurfaceView implements
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         setupDimensions();
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
         drawJoystick(centerX,centerY);
     }
 
@@ -100,7 +104,7 @@ public class JoyStick extends SurfaceView implements
             Canvas myCanvas = this.getHolder().lockCanvas();
             Paint colors = new Paint();
 
-            myCanvas.drawColor(Color.YELLOW, PorterDuff.Mode.CLEAR);
+            myCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
             colors.setARGB(255, 100, 100, 100);
             myCanvas.drawCircle(centerX, centerY, baseRadius, colors);
@@ -119,13 +123,12 @@ public class JoyStick extends SurfaceView implements
     public boolean onTouch(View view, MotionEvent motionEvent) {
         if(view.equals(this))
         {
-
             if(motionEvent.getAction() != motionEvent.ACTION_UP)
             {
                 float displacement = (float) Math.sqrt(Math.pow(motionEvent.getX() - centerX, 2) + Math.pow(motionEvent.getY() - centerY, 2));
                 if(displacement < baseRadius) {
                     drawJoystick(motionEvent.getX(), motionEvent.getY());
-                    joystickCallback.onJoystickMoved((motionEvent.getX() - centerX)/baseRadius, ((motionEvent.getY() - centerY)/baseRadius)*-1, getId());
+                    joystickCallback.onJoystickMoved((motionEvent.getX() - centerX)/baseRadius, (motionEvent.getY() - centerY)/baseRadius, getId());
                 }
                 else
                 {
@@ -133,7 +136,7 @@ public class JoyStick extends SurfaceView implements
                     float constrainedX = centerX + (motionEvent.getX() - centerX) * ratio;
                     float constrainedY = centerY + (motionEvent.getY() - centerY) * ratio;
                     drawJoystick(constrainedX, constrainedY);
-                    joystickCallback.onJoystickMoved((constrainedX - centerX)/baseRadius, ((constrainedY - centerY)/baseRadius)*-1, getId());
+                    joystickCallback.onJoystickMoved((constrainedX - centerX)/baseRadius, (constrainedY - centerY)/baseRadius, getId());
                 }
             }
             else{

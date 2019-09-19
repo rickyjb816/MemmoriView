@@ -18,12 +18,18 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.SignInMethodQueryResult;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.memmori.memmoriview.Map.MapsActivity;
 import com.memmori.memmoriview.R;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static android.text.TextUtils.isEmpty;
 
@@ -36,7 +42,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     // widgets
-    private EditText txtEmail, txtPassword;
+    private EditText txtEmail, txtPassword, txtUserName;
     private ProgressBar mProgressBar;
 
     @Override
@@ -46,14 +52,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         checkPermissions();
         txtEmail = findViewById(R.id.txtEmail);
         txtPassword = findViewById(R.id.txtPassword);
+        txtUserName = findViewById(R.id.txtUserName);
 
         setupFirebaseAuth();
         findViewById(R.id.btnLogin).setOnClickListener(this);
-        findViewById(R.id.btnRegister).setOnClickListener(this);
-        findViewById(R.id.btnGuestLogin).setOnClickListener(this);
-
-        //int image = R.drawable.hopest;
-        //Toast.makeText(this, Integer.toString(image), Toast.LENGTH_LONG).show();
 
         hideSoftKeyboard();
     }
@@ -72,26 +74,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
                     Toast.makeText(LoginActivity.this, "Authenticated with: " + user.getEmail(), Toast.LENGTH_SHORT).show();
 
-                    /*FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                            .setTimestampsInSnapshotsEnabled(true)
-                            .build();
-                    db.setFirestoreSettings(settings);
-
-                    DocumentReference userRef = db.collection(getString(R.string.collection_users))
-                            .document(user.getUid());
-
-                    userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if(task.isSuccessful()){
-                                Log.d(TAG, "onComplete: successfully set the user client.");
-                                User user = task.getResult().toObject(User.class);
-                                ((UserClient)(getApplicationContext())).setUser(user);
-                            }
-                        }
-                    });*/
-
                     Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
@@ -107,37 +89,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private void hideDialog()
     {
-        /*if(mProgressBar.getVisibility() == View.VISIBLE){
-            mProgressBar.setVisibility(View.INVISIBLE);
-        }*/
-        Toast.makeText(this, "User Failed Logged in", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "User Failed Logged in", Toast.LENGTH_SHORT).show();
     }
 
     private void showDialog()
     {
-        //mProgressBar.setVisibility(View.VISIBLE);
-        Toast.makeText(this, "User Logged in", Toast.LENGTH_SHORT).show();
-    }
-
-    private void guestSignIn()
-    {
-        FirebaseAuth.getInstance().signInAnonymously().addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d(TAG, "signInAnonymously:success");
-                    //FirebaseUser user = FirebaseAuth.getCurrentUser();
-
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w(TAG, "signInAnonymously:failure", task.getException());
-                    //Toast.makeText(this, "Authentication failed.",
-                            //Toast.LENGTH_SHORT).show();
-
-                }
-            }
-        });
+        //Toast.makeText(this, "User Logged in", Toast.LENGTH_SHORT).show();
     }
 
     private void signIn()
@@ -154,6 +111,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
+
 
                             hideDialog();
 
@@ -173,19 +131,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onClick(View view) {
         switch (view.getId()){
-            case R.id.btnRegister:{
-                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(intent);
-                break;
-            }
-
             case R.id.btnLogin:{
-                signIn();
-                break;
-            }
-
-            case R.id.btnGuestLogin:{
-                guestSignIn();
+                checkForNewAccount();
                 break;
             }
         }
@@ -223,5 +170,50 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         } else {
             // Permission has already been granted
         }
+    }
+
+    private void createNewAccount()
+    {
+        FirebaseAuth.getInstance().createUserWithEmailAndPassword(txtEmail.getText().toString(), txtPassword.getText().toString()).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+            @Override
+            public void onSuccess(AuthResult authResult) {
+
+                Map<String, Object> docData = new HashMap<>();
+                docData.put("username", txtUserName.getText().toString());
+                docData.put("email", txtEmail.getText().toString());
+                docData.put("user_id", FirebaseAuth.getInstance().getUid());
+                docData.put("user_type", "Free");
+
+                //docData.put("locations", UserLocations);
+
+                FirebaseFirestore.getInstance().collection("Users").document(FirebaseAuth.getInstance().getUid()).set(docData).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        //startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                    }
+                });
+            }
+        });
+    }
+
+    private void checkForNewAccount()
+    {
+        FirebaseAuth.getInstance().fetchSignInMethodsForEmail(txtEmail.getText().toString())
+                .addOnCompleteListener(new OnCompleteListener<SignInMethodQueryResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<SignInMethodQueryResult> task) {
+
+                        boolean isNewUser = task.getResult().getSignInMethods().isEmpty();
+
+                        if (isNewUser) {
+                            Log.e("TAG", "Is New User!");
+                            createNewAccount();
+                        } else {
+                            Log.e("TAG", "Is Old User!");
+                            signIn();
+                        }
+
+                    }
+                });
     }
 }

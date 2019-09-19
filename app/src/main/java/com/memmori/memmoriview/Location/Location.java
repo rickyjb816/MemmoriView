@@ -10,7 +10,6 @@ import java.text.SimpleDateFormat;
 
 public class Location implements Parcelable {
 
-    private String name;
     private GeoPoint location;
     private String owner;
     private String photographer;
@@ -20,10 +19,9 @@ public class Location implements Parcelable {
     private String streetName;
     private String buildingName;
     private String description;
-    private String Test;
+    private String filter;
 
-    public Location(String name, GeoPoint location, String owner, String photographer, Timestamp dateTaken, Timestamp dateAdded, String picture, String streetName, String buildingName, String description, String Test) {
-        this.name = name;
+    public Location(GeoPoint location, String owner, String photographer, Timestamp dateTaken, Timestamp dateAdded, String picture, String streetName, String buildingName, String description, String Test) {
         this.location = location;
         this.owner = owner;
         this.photographer = photographer;
@@ -33,11 +31,9 @@ public class Location implements Parcelable {
         this.streetName = streetName;
         this.buildingName = buildingName;
         this.description = description;
-        this.Test = Test;
     }
 
     public Location(QueryDocumentSnapshot location) {
-        this.name = location.get("name").toString();
         this.location = (GeoPoint) location.get("location");
         this.owner = location.get("owner").toString();
         this.photographer = location.get("photographer").toString();
@@ -46,13 +42,11 @@ public class Location implements Parcelable {
         this.picture = location.get("picture").toString();
         this.streetName = location.get("street_name").toString();
         this.buildingName = location.get("building_name").toString();
-        //this.description = location.get("description").toString();
-        this.Test = location.get("Test").toString();
-        //Toast.makeText(getApplicationCon, Toast.LENGTH_SHORT).show();
+        this.description = location.get("description").toString();
+        this.filter = location.get("filter").toString();
     }
 
     protected Location(Parcel in) {
-        name = in.readString();
         location = new GeoPoint(in.readDouble(), in.readDouble());
         owner = in.readString();
         photographer = in.readString();
@@ -62,6 +56,7 @@ public class Location implements Parcelable {
         streetName = in.readString();
         buildingName = in.readString();
         description = in.readString();
+        filter = in.readString();
     }
 
     public static final Creator<Location> CREATOR = new Creator<Location>() {
@@ -87,7 +82,6 @@ public class Location implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(name);
         parcel.writeDouble(location.getLatitude());
         parcel.writeDouble(location.getLongitude());
         parcel.writeString(owner);
@@ -98,14 +92,7 @@ public class Location implements Parcelable {
         parcel.writeString(streetName);
         parcel.writeString(buildingName);
         parcel.writeString(description);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        parcel.writeString(filter);
     }
 
     public GeoPoint getLocation() {
@@ -193,5 +180,15 @@ public class Location implements Parcelable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getFilter()
+    {
+        return filter;
+    }
+
+    public void setFilter(String filter)
+    {
+        this.filter = filter;
     }
 }

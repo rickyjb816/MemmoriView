@@ -46,7 +46,7 @@ public class ClusterManagerRenderer extends DefaultClusterRenderer<ClusterMarker
         int padding = (int) context.getResources().getDimension(R.dimen.custom_marker_padding);
         imageview.setPadding(padding, padding, padding, padding);
         iconGenerator.setContentView(imageview);
-        iconGenerator.setColor(getColor(1));
+        //iconGenerator.setColor(getColor(clusterManager.get));
 
         storage = FirebaseStorage.getInstance(FIREBASE_STORAGE);
         storageRef = storage.getReference();
@@ -57,6 +57,7 @@ public class ClusterManagerRenderer extends DefaultClusterRenderer<ClusterMarker
     protected void onBeforeClusterItemRendered(ClusterMarker item, MarkerOptions markerOptions)
     {
         markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconGenerator.makeIcon())).title(item.getTitle());
+        iconGenerator.setColor(getColor(item.getLocation().getFilter().equals("User") ? 1 : 2));
     }
 
     @Override
@@ -71,7 +72,7 @@ public class ClusterManagerRenderer extends DefaultClusterRenderer<ClusterMarker
 
     @Override
     protected int getColor(int clusterSize) {
-        return Color.WHITE;
+        return clusterSize == 1 ? Color.WHITE : Color.GREEN;
     }
 
     public void setUpdateMarker(ClusterMarker marker)
@@ -87,6 +88,7 @@ public class ClusterManagerRenderer extends DefaultClusterRenderer<ClusterMarker
     @Override
     protected void onClusterItemRendered(ClusterMarker clusterItem, Marker marker) {
         super.onClusterItemRendered(clusterItem, marker);
+        iconGenerator.setColor(getColor(clusterItem.getLocation().getFilter().equals("User") ? 1 : 2));
         StorageReference imgRef = storageRef.child(clusterItem.getIconPicture());
         imgRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override

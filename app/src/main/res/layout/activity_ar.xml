@@ -16,32 +16,44 @@
         android:id="@+id/btnARBack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Back" />
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/myriad_pro_light"
+        android:text="Back"
+        app:layout_constraintStart_toStartOf="@+id/arfragment"
+        app:layout_constraintTop_toTopOf="@+id/arfragment" />
 
-    <com.google.ar.sceneform.ArSceneView
+    <fragment
+        android:id="@+id/arfragment"
+        android:name="com.google.ar.sceneform.ux.ArFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="86dp" />
+
+    <!--<com.google.ar.sceneform.ArSceneView
         android:id="@+id/ar_scene_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="top"
         tools:layout_editor_absoluteX="81dp"
-        tools:layout_editor_absoluteY="185dp" />
+        tools:layout_editor_absoluteY="185dp" />-->
 
     <com.memmori.memmoriview.Controls.JoyStick
         android:id="@+id/jsMovement"
         android:layout_width="132dp"
         android:layout_height="121dp"
         android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/ibtnImageLock"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/ar_scene_view" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.memmori.memmoriview.Controls.JoyStick
         android:id="@+id/jsRotation"
         android:layout_width="132dp"
         android:layout_height="121dp"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="16dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -52,13 +64,14 @@
         android:id="@+id/ibtnImageLock"
         android:layout_width="75dp"
         android:layout_height="75dp"
+        android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:background="@android:color/transparent"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="@+id/ar_scene_view"
-        app:layout_constraintEnd_toEndOf="@+id/ar_scene_view"
-        app:layout_constraintStart_toStartOf="@+id/ar_scene_view"
+        app:layout_constraintBottom_toBottomOf="@+id/arfragment"
+        app:layout_constraintEnd_toEndOf="@+id/arfragment"
+        app:layout_constraintStart_toStartOf="@+id/arfragment"
         app:srcCompat="@drawable/lock" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
